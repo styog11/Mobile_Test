@@ -11,13 +11,14 @@ class RepositoryProvider extends ChangeNotifier {
   bool _incompleteResults = true;
   bool get incompletResults => _incompleteResults;
   bool _isLoading = false;
-  bool get isLoading => _incompleteResults;
+  bool get isLoading => _isLoading;
   fetchRepositories(int page) async {
-    _isLoading = true;
-    notifyListeners();
     Uri url = Uri.parse(
         "https://api.github.com/search/repositories?q=created:%3E${getFormattedDate()}&sort=stars&order=desc&page=$page");
     try {
+      print("called ");
+      _isLoading = true;
+       notifyListeners();
       http.Response response = await http.get(url);
       if (response.statusCode == 200) {
         Map<String, dynamic> data = jsonDecode(response.body);
@@ -39,8 +40,9 @@ class RepositoryProvider extends ChangeNotifier {
   }
 
   String getFormattedDate() {
-    final DateTime now = DateTime.now();
+    final DateTime today = DateTime.now();
+    final DateTime before30Days = today.subtract(Duration(days: 30));
     final DateFormat formatter = DateFormat('yyyy-MM-dd');
-    return formatter.format(now);
+    return formatter.format(before30Days);
   }
 }
