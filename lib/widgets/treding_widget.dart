@@ -35,7 +35,9 @@ class _TredingWidgetState extends State<TredingWidget> {
                   ? _buildProgress()
                   : provider.repositories.isEmpty
                       ? _buildNoRepositories()
-                      : _buildRepositories(provider.repositories);
+                      : Stack(children: [
+                        _buildRepositories(provider.repositories),
+                        provider.isPaginating ? _buildProgress() : Container()]);
             }),
           ),
         ),
@@ -56,21 +58,39 @@ class _TredingWidgetState extends State<TredingWidget> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(decoration: BoxDecoration(
-            color: Colors.grey.withAlpha(100),
-          ),child: Padding(
-            padding: const EdgeInsets.all(15.0),
-            child: Center(child: Text("Trending Repos",style: TextStyle(fontSize: 18,color: Colors.black,fontWeight: FontWeight.bold),)),
-          )),
+          Container(
+              decoration: BoxDecoration(
+                color: Colors.grey.withAlpha(100),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(15.0),
+                child: Center(
+                    child: Text(
+                  "Trending Repos",
+                  style: TextStyle(
+                      fontSize: 18,
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold),
+                )),
+              )),
           Expanded(
-            child: ListView.builder(
-                shrinkWrap: true,
-                itemCount: repositories.length,
-                itemBuilder: (context, index) {
-                  return ListTile(
-                    title: _buildSingleRepository(repositories[index]),
-                  );
-                }),
+            child: NotificationListener<ScrollEndNotification>(
+              onNotification: (notification) {
+                if (notification.metrics.pixels ==
+                    notification.metrics.maxScrollExtent) {
+                  _loadMoreRepositories();
+                }
+                return false;
+              },
+              child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: repositories.length,
+                  itemBuilder: (context, index) {
+                    return ListTile(
+                      title: _buildSingleRepository(repositories[index]),
+                    );
+                  }),
+            ),
           ),
         ],
       ),
@@ -85,18 +105,37 @@ class _TredingWidgetState extends State<TredingWidget> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(repo.name,style: TextStyle(fontSize: 16,fontWeight: FontWeight.bold),),
-              SizedBox(height: 10,),
-              Text(repo.description,style: TextStyle(fontSize: 14,),),
-              SizedBox(height: 10,),
+              Text(
+                repo.name,
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(
+                height: 10,
+              ),
+              Text(
+                repo.description,
+                style: TextStyle(
+                  fontSize: 14,
+                ),
+              ),
+              SizedBox(
+                height: 10,
+              ),
               Row(
                 children: [
-                  Row(crossAxisAlignment: CrossAxisAlignment.center,children: [
-                    Image.asset('assets/row.png',height: 20,),
+                  Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+                    Image.asset(
+                      'assets/row.png',
+                      height: 20,
+                    ),
                     SizedBox(
                       width: 2,
                     ),
-                    Text(repo.owner,style: TextStyle(fontSize: 13,fontWeight: FontWeight.bold),)
+                    Text(
+                      repo.owner,
+                      style:
+                          TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                    )
                   ]),
                   Expanded(child: Container()),
                   Row(
@@ -113,14 +152,28 @@ class _TredingWidgetState extends State<TredingWidget> {
             ],
           ),
         ),
-        Divider(color: Colors.grey,)
+        Divider(
+          color: Colors.grey,
+        )
       ],
     );
   }
-   String parseCount(int stars){
-      if(stars < 1000){
-        return stars.toString();
-      }
-      return "${(stars / 1000).toStringAsFixed(1)}k";
+
+  void _loadMoreRepositories() {
+    if (provider.incompletResults) {
+      page++;
+      provider.fetchRepositories(page);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('No more repositories to load.')),
+      );
+    }
+  }
+
+  String parseCount(int stars) {
+    if (stars < 1000) {
+      return stars.toString();
+    }
+    return "${(stars / 1000).toStringAsFixed(1)}k";
   }
 }

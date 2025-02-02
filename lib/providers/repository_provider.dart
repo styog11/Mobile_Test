@@ -12,13 +12,18 @@ class RepositoryProvider extends ChangeNotifier {
   bool get incompletResults => _incompleteResults;
   bool _isLoading = false;
   bool get isLoading => _isLoading;
+  bool _isPaginating = false;
+  bool get isPaginating => _isPaginating;
   fetchRepositories(int page) async {
     Uri url = Uri.parse(
         "https://api.github.com/search/repositories?q=created:%3E${getFormattedDate()}&sort=stars&order=desc&page=$page");
-    try {
-      print("called ");
+    if (page > 1) {
+      _isPaginating = true;
+    } else {
       _isLoading = true;
-       notifyListeners();
+    }
+    try {
+      notifyListeners();
       http.Response response = await http.get(url);
       if (response.statusCode == 200) {
         Map<String, dynamic> data = jsonDecode(response.body);
@@ -35,6 +40,7 @@ class RepositoryProvider extends ChangeNotifier {
       print("error $e ");
     } finally {
       _isLoading = false;
+      _isPaginating = false;
       notifyListeners();
     }
   }

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:mobile_test/entities/repository.dart';
 import 'package:mobile_test/providers/repository_provider.dart';
 import 'package:mobile_test/widgets/treding_widget.dart';
 import 'package:provider/provider.dart';
