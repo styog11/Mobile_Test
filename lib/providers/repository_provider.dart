@@ -31,7 +31,7 @@ class RepositoryProvider extends ChangeNotifier {
         }
       } else {}
     } catch (e) {
-      print("error $e");
+      print("error $e ");
     } finally {
       _isLoading = false;
       notifyListeners();
